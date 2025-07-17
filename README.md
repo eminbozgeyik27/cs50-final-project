@@ -28,7 +28,9 @@ This is a Python-based virtual oscilloscope simulation that allows users to gene
    pip install -r requirements.txt
 
 2. **Important !!! Run the Program**
-        python [filename.py]
+   
+   ```bash
+   python [filename.py]
 
 
 
