@@ -119,11 +119,11 @@ def animate(i):
 
     # Eksen etiketini zaman türüne göre dinamik güncelle
     if zaman_tipi == "Second":
-        ax.set_xlabel("Zaman (s)")
+        ax.set_xlabel("Time (s)")
     elif zaman_tipi == "Milisecond":
-        ax.set_xlabel("Zaman (ms)")
+        ax.set_xlabel("Time (ms)")
     elif zaman_tipi == "Mikrosecond":
-        ax.set_xlabel("Zaman (µs)")
+        ax.set_xlabel("Time (µs)")
 
     rmsbox.set_val(f"{rms_degeri(yeni_genlik, dalga_tipi):.3f}")
     vppbox.set_val(f"{vpp_degeri(yeni_genlik):.2f}")
