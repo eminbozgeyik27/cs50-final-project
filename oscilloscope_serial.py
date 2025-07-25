@@ -6,6 +6,7 @@ import matplotlib.animation as animation
 from scipy import signal
 import csv
 import serial
+import time
 
 
 
@@ -13,6 +14,7 @@ import serial
 
 ser = serial.Serial('COM4', 9600)
 ser.timeout = 0.5
+
 
 
 # Başlangıç değerleri
@@ -23,15 +25,15 @@ print("Running...")
 genlik = 1
 frekans = 1
 zaman_araligi_s = 0.002
-zaman_tipi = "Second"  # 🔧 Varsayılan zaman tipi
+zaman_tipi = "Second"  # Default zaman türü
 
 # Ana figür ve eksenler
 fig, ax = plt.subplots()
 plt.subplots_adjust(left=0.1, right=0.7, top=0.8, bottom=0.1)
 
 # Radio buttons (dalga tipi ve zaman birimi seçimi)
-dalgatip_radio = plt.axes([0.85, 0.23, 0.1, 0.15])
-zaman_radio = plt.axes([0.85, 0.06, 0.1, 0.15])
+dalgatip_radio = plt.axes([0.85, 0.22, 0.1, 0.15])
+zaman_radio = plt.axes([0.85, 0.03, 0.1, 0.15])
 radio = RadioButtons(dalgatip_radio, ("Sine", "Square", "Triangle"))
 radio_zaman = RadioButtons(zaman_radio, ("Second", "Milisecond", "Microsecond"))
 
@@ -42,6 +44,7 @@ rmskutusu = fig.add_axes([0.85, 0.67, 0.1, 0.05])
 vppkutusu = fig.add_axes([0.85, 0.59, 0.1, 0.05])
 kaydetkutusu = fig.add_axes([0.85, 0.51, 0.1, 0.05])
 durdurkutusu = fig.add_axes([0.85, 0.43, 0.1, 0.05])
+temakutusu = fig.add_axes([0.85, 0.37, 0.1, 0.05])
 
 frekansbox = TextBox(frekanskutu, 'Frequency (Hz)', initial=str(frekans))
 genlikbox  = TextBox(genlikkutusu, 'Voltage (V)', initial=str(genlik))
@@ -49,6 +52,12 @@ rmsbox = TextBox(rmskutusu, 'Root Mean Square (RMS)', initial="{:.3f}".format(ge
 vppbox = TextBox(vppkutusu, 'Vpp', initial=str(2 * genlik))
 kaydetbutton = Button(kaydetkutusu, "Save as Excel")
 durdurbutton = Button(durdurkutusu, "Stop")
+temabutton = Button(temakutusu, "Light")
+
+frekansbox.label.set_color('black')
+rmsbox.label.set_color('black')
+vppbox.label.set_color('black')
+genlikbox.label.set_color('black')
 
 
 # Zaman tipi seçilince çağrılacak fonksiyon
@@ -89,19 +98,33 @@ def rms_degeri(genlik, tip):
 def vpp_degeri(genlik):
     return 2 * genlik
 
+
+
+son_zaman = 0
 def olcum():
-    try:
-        yeni_genlik = genlik
-        yeni_frekans = float(frekansbox.text.strip())
+
+    suan = time.time()
+    global son_zaman
+
+
+    if suan - son_zaman >= 120:
         try:
             veri = ser.readline().decode('utf-8').strip()
+            yeni_frekans = float(frekansbox.text.strip())
             if veri:
                 yeni_genlik = float(veri)
+            else:
+                yeni_genlik = genlik
+
+            son_zaman = suan
+            return yeni_frekans, yeni_genlik
         except ValueError:
-            pass
-        return yeni_frekans, yeni_genlik
-    except ValueError:
+            return frekans, genlik
+    else:
+
         return frekans, genlik
+
+
 
 def grafik(frekans, genlik):
     ax.set_xlim(0, zaman_hesaplama(zaman_tipi))
@@ -142,6 +165,7 @@ def animate(i):
     elif zaman_tipi == "Mikrosecond":
         ax.set_xlabel("Time (µs)")
 
+
     rmsbox.set_val(f"{rms_degeri(yeni_genlik, dalga_tipi):.3f}")
     vppbox.set_val(f"{vpp_degeri(yeni_genlik):.2f}")
     genlikbox.set_val(f"{yeni_genlik:.2f}")
@@ -179,7 +203,43 @@ def kaydet(event):
 
 kaydetbutton.on_clicked(kaydet)
 
+aydinlik_mod = True
 
+def tema(event):
+    global aydinlik_mod
+    if aydinlik_mod:
+
+        fig.patch.set_facecolor('#2E2E2E')
+        ax.set_facecolor('#2E2E2E')
+        ax.tick_params(colors='white')
+        ax.yaxis.label.set_color('white')
+        ax.xaxis.label.set_color('white')
+        ax.title.set_color('white')
+        ax.grid(color='gray', linestyle='--')
+        temabutton.label.set_text("Light")
+        frekansbox.label.set_color('white')
+        rmsbox.label.set_color('white')
+        vppbox.label.set_color('white')
+        genlikbox.label.set_color('white')
+
+
+    else:
+        # Light mode
+        fig.patch.set_facecolor('white')
+        ax.set_facecolor('white')
+        ax.tick_params(colors='black')
+        ax.yaxis.label.set_color('black')
+        ax.xaxis.label.set_color('black')
+        ax.title.set_color('black')
+        ax.grid(color='lightgray', linestyle='--')
+        frekansbox.label.set_color('black')
+        rmsbox.label.set_color('black')
+        vppbox.label.set_color('black')
+        genlikbox.label.set_color('black')
+        temabutton.label.set_text("Dark")
+    fig.canvas.draw_idle()
+    aydinlik_mod = not aydinlik_mod
+temabutton.on_clicked(tema)
 
 
 
