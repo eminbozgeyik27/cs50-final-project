@@ -39,5 +39,11 @@ This project allowed me to simulate signal behaviors (like sine, square, and tri
    python [filename.py]
 
 
+## 📜 Lisans
+
+Bu proje **MIT Lisansı** ile lisanslanmıştır.
+
+
+
 
 
