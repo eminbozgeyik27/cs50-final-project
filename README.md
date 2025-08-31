@@ -41,7 +41,7 @@ This project allowed me to simulate signal behaviors (like sine, square, and tri
 
 ## 📜 License
 
-This project licensed with **MIT License**
+This project is licensed under the **MIT License**.
 
 
 
